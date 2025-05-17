@@ -1,7 +1,37 @@
-[gd_scene load_steps=22 format=3 uid="uid://bwrapl7xldb4c"]
+[gd_scene load_steps=35 format=3 uid="uid://bwrapl7xldb4c"]
 
 [ext_resource type="Texture2D" uid="uid://cn26jqvbwi11a" path="res://assets/sprites/lily/SpriteSheetLily.png" id="1_8afob"]
+[ext_resource type="Script" uid="uid://cmgb7olnt057l" path="res://scripts/player/player.gd" id="1_lvxji"]
 [ext_resource type="Script" uid="uid://dr33g6fqujd65" path="res://scripts/state_machine/state_machine.gd" id="2_dovo2"]
+[ext_resource type="Script" uid="uid://d0pgykvhs1v6t" path="res://scripts/player/states/player_state_idle.gd" id="3_gmlin"]
+[ext_resource type="Script" uid="uid://fp12gh4g22bw" path="res://scripts/player/states/player_state_walking.gd" id="5_p47bc"]
+[ext_resource type="Script" uid="uid://dgxswpic8g3s6" path="res://scripts/player/states/player_state_jumping.gd" id="6_75vfm"]
+[ext_resource type="Script" uid="uid://c5qq5b2lcrggd" path="res://scripts/player/states/player_state_falling.gd" id="7_0owmy"]
+[ext_resource type="Script" uid="uid://ctp3ivqfb4fjm" path="res://scripts/player/states/player_state_crouching.gd" id="8_qek5x"]
+[ext_resource type="Script" uid="uid://b1a6t2g16v06y" path="res://scripts/player/states/player_state_dashing.gd" id="9_5gtgg"]
+
+[sub_resource type="Gradient" id="Gradient_qek5x"]
+offsets = PackedFloat32Array(0, 0.824675, 0.844156)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_5gtgg"]
+gradient = SubResource("Gradient_qek5x")
+width = 4
+height = 4
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_5gtgg"]
+offsets = PackedFloat32Array(0, 0.173333, 0.84, 0.993333)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5gtgg"]
+atlas = ExtResource("1_8afob")
+region = Rect2(74, 25, 17, 22)
+
+[sub_resource type="Gradient" id="Gradient_h17s1"]
+offsets = PackedFloat32Array(0, 0.173333, 0.84, 1)
+colors = PackedColorArray(1, 0.596078, 0, 0, 1, 0.596078, 0, 1, 0.482353, 0.0705882, 0.0862745, 1, 0.482353, 0.0705882, 0.0862745, 0)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hocn8"]
 atlas = ExtResource("1_8afob")
@@ -26,6 +56,10 @@ region = Rect2(0, 72, 24, 24)
 [sub_resource type="AtlasTexture" id="AtlasTexture_dsco7"]
 atlas = ExtResource("1_8afob")
 region = Rect2(24, 72, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0owmy"]
+atlas = ExtResource("1_8afob")
+region = Rect2(0, 48, 24, 24)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wh6ij"]
 atlas = ExtResource("1_8afob")
@@ -108,6 +142,14 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_0owmy")
+}],
+"loop": true,
+"name": &"crouch",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_wh6ij")
 }],
 "loop": false,
@@ -137,7 +179,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle",
-"speed": 10.0
+"speed": 7.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -162,7 +204,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"walk",
-"speed": 10.0
+"speed": 7.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mr4qx"]
@@ -170,14 +212,76 @@ radius = 4.0
 height = 16.0
 
 [node name="Player" type="CharacterBody2D"]
+collision_mask = 8
+script = ExtResource("1_lvxji")
 
-[node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
+[node name="Camera" type="Camera2D" parent="."]
+zoom = Vector2(2.5, 2.5)
+position_smoothing_enabled = true
+position_smoothing_speed = 3.5
+
+[node name="Graphics" type="Node2D" parent="."]
+position = Vector2(0, -12)
+
+[node name="Particles" type="Node2D" parent="Graphics"]
+
+[node name="JumpParticles" type="CPUParticles2D" parent="Graphics/Particles"]
+position = Vector2(0, 12)
+emitting = false
+texture = SubResource("GradientTexture2D_5gtgg")
+lifetime = 0.3
+one_shot = true
+explosiveness = 1.0
+emission_shape = 3
+emission_rect_extents = Vector2(8, 1)
+particle_flag_align_y = true
+direction = Vector2(0, -1)
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 11.0
+initial_velocity_max = 22.5
+color_ramp = SubResource("Gradient_5gtgg")
+
+[node name="DashParticles" type="CPUParticles2D" parent="Graphics/Particles"]
+position = Vector2(-2, 0)
+emitting = false
+amount = 16
+texture = SubResource("AtlasTexture_5gtgg")
+lifetime = 0.5
+particle_flag_align_y = true
+gravity = Vector2(0, 0)
+color_ramp = SubResource("Gradient_h17s1")
+
+[node name="SpriteCointainer" type="Node2D" parent="Graphics"]
+position = Vector2(0, 12)
+
+[node name="PlayerAnimatedSprite" type="AnimatedSprite2D" parent="Graphics/SpriteCointainer"]
+position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_iya25")
 animation = &"idle"
 
-[node name="Collider" type="CollisionShape2D" parent="."]
-position = Vector2(0, 4)
+[node name="PlayerCollider" type="CollisionShape2D" parent="."]
+position = Vector2(0, -8)
 shape = SubResource("CapsuleShape2D_mr4qx")
 
-[node name="StateMachine" type="Node" parent="."]
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("default_state")]
 script = ExtResource("2_dovo2")
+default_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("3_gmlin")
+
+[node name="Walking" type="Node" parent="StateMachine"]
+script = ExtResource("5_p47bc")
+
+[node name="Jumping" type="Node" parent="StateMachine"]
+script = ExtResource("6_75vfm")
+
+[node name="Falling" type="Node" parent="StateMachine"]
+script = ExtResource("7_0owmy")
+
+[node name="Crouching" type="Node" parent="StateMachine"]
+script = ExtResource("8_qek5x")
+
+[node name="Dashing" type="Node" parent="StateMachine"]
+script = ExtResource("9_5gtgg")

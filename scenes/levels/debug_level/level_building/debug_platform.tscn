@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://hufo1dwrtpvw"]
+
+[ext_resource type="Texture2D" uid="uid://c2wx065ovpden" path="res://assets/sprites/levels/debug_level/debug_tile.png" id="1_aljw3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8r7b3"]
+size = Vector2(24, 24)
+
+[node name="debug_platform" type="StaticBody2D" groups=["platform"]]
+modulate = Color(0, 1, 0, 1)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Collider" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_8r7b3")
+one_way_collision = true
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("1_aljw3")
